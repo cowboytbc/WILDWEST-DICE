@@ -136,7 +136,7 @@ Contract: \`0x8129609E5303910464FCe3022a809fA44455Fe9A\`
 🔒 **Privacy:** Payout addresses and funding are handled in private messages for security.
             `;
             
-            ctx.reply(welcomeMessage, { parse_mode: 'Markdown' });
+            ctx.reply(welcomeMessage);
         });
         
         this.bot.command('connect', (ctx) => {
@@ -288,13 +288,18 @@ Example: \`/wallet 0x742d35Cc6b392e82e721C4C8c2b1c93d0E3d0123\`
             const userId = ctx.from.id;
             const args = ctx.message.text.split(' ');
             
+            // MUST be in a group chat to create games
+            if (ctx.chat.type === 'private') {
+                return ctx.reply('❌ **Games must be created in group chats!**\n\nAdd me to a group chat and use `/create <amount>` there to challenge other players publicly. 🎲');
+            }
+            
             const walletAddress = await this.database.getUserWallet(userId);
             if (!walletAddress) {
-                return ctx.reply('❌ Please set your payout wallet first using /connect');
+                return ctx.reply('❌ Please set your payout wallet first using /connect (this can be done in private)');
             }
             
             if (args.length < 2) {
-                return ctx.reply('❌ Please specify buy-in amount: /create 100');
+                return ctx.reply('❌ Please specify buy-in amount: `/create 100`');
             }
             
             const buyInAmount = parseFloat(args[1]);
@@ -303,7 +308,7 @@ Example: \`/wallet 0x742d35Cc6b392e82e721C4C8c2b1c93d0E3d0123\`
             }
             
             try {
-                // Generate a temporary game ID for tracking
+                // Generate a game ID for tracking
                 const gameId = Date.now().toString() + Math.random().toString(36).substr(2, 5);
                 
                 // Store game in local state as "pending"
@@ -312,10 +317,11 @@ Example: \`/wallet 0x742d35Cc6b392e82e721C4C8c2b1c93d0E3d0123\`
                     challenger: userId,
                     challengerAddress: walletAddress,
                     challengerName: ctx.from.username || `User${userId.toString().slice(-4)}`,
+                    chatId: ctx.chat.id, // Store the group chat ID
                     opponent: null,
                     opponentAddress: null,
                     buyIn: buyInAmount,
-                    status: 'pending_deposit',
+                    status: 'pending_challenger_deposit',
                     rounds: [],
                     currentRound: 0,
                     challengerScore: 0,
@@ -588,8 +594,8 @@ Good luck! 🍀
 
 💰 Current Pool: **${lotteryPool} WWT**
 
-🎲 Roll two 6s on any dice to trigger the lottery!
-🍀 Roll 7 or 11 total to win the jackpot!
+� WIN any game to earn a lottery roll chance!
+🍀 Roll 2 dice - if total = 7 or 11, win the jackpot!
 
 *1% of each game's prize pool builds up this jackpot*
                 `;
@@ -827,8 +833,8 @@ Click the button below to continue in a private message:
 • Automatic payout to your wallet address
 
 **🎰 LOTTERY SYSTEM:**
-• Roll ⚅ ⚅ (double 6s) = Lottery trigger!
-• If dice total = 7 or 11, WIN ENTIRE LOTTERY POOL
+• WIN any game to earn a lottery roll chance!
+• Roll 2 dice - if total = 7 or 11, WIN ENTIRE LOTTERY POOL
 • Pool builds from all 1% game fees
 
 **📊 EXAMPLE GAME:**
@@ -937,7 +943,7 @@ Contract: \`0x8129609E5303910464FCe3022a809fA44455Fe9A\`
 🔒 **Privacy:** Payout addresses and funding are handled in private messages for security.
             `;
             
-            ctx.reply(welcomeMessage, { parse_mode: 'Markdown' });
+            ctx.reply(welcomeMessage);
         });
 
         // Add a general command error handler for invalid commands

@@ -78,7 +78,7 @@ class DiceBotGame {
 Welcome to the ultimate dice gambling experience on Base!
 
 🪙 **ONLY ACCEPTS $WILDW TOKENS** 🪙
-Contract: \`0x8129609E5303910464FCe3022a809fA44455Fe9A\`
+Contract: 0x8129609E5303910464FCe3022a809fA44455Fe9A
 
 **🎯 HOW THE GAME WORKS:**
 
@@ -799,7 +799,7 @@ You claimed the challenge! Game ID: \`${gameId}\`
 
 **🪙 TOKEN REQUIREMENTS:**
 • Only accepts $WILDW tokens on Base network
-• Contract: \`0x8129609E5303910464FCe3022a809fA44455Fe9A\`
+• Contract: 0x8129609E5303910464FCe3022a809fA44455Fe9A
 • Get $WILDW from DEX or swap platforms
 
 **⚙️ INITIAL SETUP:**
@@ -863,7 +863,7 @@ Ready to gamble? Start with \`/create <amount>\`! 🎲
 🪙 **$WILDW Token Contract Address** 🪙
 
 **Contract Address:**
-\`0x8129609E5303910464FCe3022a809fA44455Fe9A\`
+0x8129609E5303910464FCe3022a809fA44455Fe9A
 
 **Network:** Base
 **Symbol:** $WILDW
@@ -887,7 +887,7 @@ Ready to play? Get some $WILDW and use \`/create <amount>\`! 🎲
 Welcome to the ultimate dice gambling experience on Base!
 
 🪙 **ONLY ACCEPTS $WILDW TOKENS** 🪙
-Contract: \`0x8129609E5303910464FCe3022a809fA44455Fe9A\`
+Contract: 0x8129609E5303910464FCe3022a809fA44455Fe9A
 
 **🎯 HOW THE GAME WORKS:**
 

@@ -329,36 +329,56 @@ Example: \`/wallet 0x742d35Cc6b392e82e721C4C8c2b1c93d0E3d0123\`
                     createdAt: Date.now()
                 });
                 
-                const message = `
-🎮 **Game Created!**
+                // PUBLIC CHALLENGE in group chat - FIRST COME FIRST SERVE
+                const publicChallenge = `
+� **DICE CHALLENGE!** 🎲
 
-🆔 Game ID: \`${gameId}\`
-💰 Buy-in: ${buyInAmount} $WILDW tokens
-📍 Your payout address: \`${walletAddress}\`
+� **${ctx.from.username || `User${userId.toString().slice(-4)}`}** throws down the gauntlet!
+💰 **Buy-in**: ${buyInAmount} $WILDW tokens
+🆔 **Game ID**: \`${gameId}\`
 
-� **Please message me privately to fund this game securely**
+⚡ **FIRST COME, FIRST SERVE!**
+🏃‍♂️ Type \`/join ${gameId}\` to claim this challenge!
 
-Click the button below to continue in a private message:
+⏰ Expires in 30 minutes if unclaimed
                 `;
                 
-                ctx.reply(message, { 
-                    parse_mode: 'Markdown',
-                    reply_markup: {
-                        inline_keyboard: [[
-                            { text: '🔒 Fund Game Privately', url: `https://t.me/${ctx.botInfo.username}?start=fund_${gameId}` }
-                        ]]
-                    }
-                });
+                ctx.reply(publicChallenge, { parse_mode: 'Markdown' });
                 
-                // Set timeout to clean up if not confirmed
+                // Send PRIVATE funding instructions to challenger
+                try {
+                    const privateInstructions = `
+🔒 **PRIVATE FUNDING INSTRUCTIONS** 🔒
+
+Your challenge is live! Game ID: \`${gameId}\`
+💰 Buy-in: **${buyInAmount} $WILDW tokens**
+
+📤 **Send ${buyInAmount} $WILDW tokens to:**
+\`0x8129609E5303910464FCe3022a809fA44455Fe9A\`
+
+✅ **After sending, confirm with:** \`/confirm ${gameId}\`
+
+⚠️ Send exactly ${buyInAmount} tokens from your registered wallet: \`${walletAddress}\`
+
+🎯 Once you confirm, your challenge will be marked as "FUNDED" in the group!
+                    `;
+                    
+                    await this.bot.telegram.sendMessage(userId, privateInstructions, { parse_mode: 'Markdown' });
+                } catch (privateError) {
+                    ctx.reply(`🔒 @${ctx.from.username || `User${userId.toString().slice(-4)}`} - Check your DMs for funding instructions!`);
+                }
+                
+                // Set timeout to clean up if not funded
                 setTimeout(() => {
-                    if (this.activeGames.has(gameId) && this.activeGames.get(gameId).status === 'pending_deposit') {
+                    if (this.activeGames.has(gameId) && this.activeGames.get(gameId).status === 'pending_challenger_deposit') {
                         this.activeGames.delete(gameId);
+                        // Notify group that challenge expired
+                        ctx.telegram.sendMessage(ctx.chat.id, `⏰ **Challenge ${gameId} EXPIRED** - challenger never funded within 30 minutes.`);
                     }
                 }, 30 * 60 * 1000); // 30 minutes
                 
             } catch (error) {
-                ctx.reply(`❌ Failed to create game: ${error.message}`);
+                ctx.reply(`❌ Failed to create challenge: ${error.message}`);
             }
         });
         
@@ -379,23 +399,33 @@ Click the button below to continue in a private message:
             }
             
             if (args.length < 2) {
-                return ctx.reply('❌ Please specify game ID: /confirm <gameId>');
+                return ctx.reply('❌ Please specify game ID: `/confirm <gameId>`');
             }
             
             const gameId = args[1];
             const game = this.activeGames.get(gameId);
             
-            if (!game || game.challenger !== userId) {
-                return ctx.reply('❌ Game not found or you are not the creator.');
+            if (!game) {
+                return ctx.reply('❌ Game not found. Make sure the game ID is correct.');
             }
             
-            if (game.status !== 'pending_deposit') {
-                return ctx.reply('❌ Game deposit already confirmed or game is no longer pending.');
+            // Determine if this is challenger or opponent confirming
+            let isChallenger = false;
+            let isOpponent = false;
+            let walletAddress = null;
+            
+            if (game.challenger === userId) {
+                isChallenger = true;
+                walletAddress = game.challengerAddress;
+            } else if (game.opponent === userId) {
+                isOpponent = true;
+                walletAddress = game.opponentAddress;
+            } else {
+                return ctx.reply('❌ You are not a participant in this game.');
             }
             
             try {
                 // Verify player has deposited the required tokens
-                const walletAddress = await this.database.getUserWallet(userId);
                 const depositBalance = await this.blockchain.getPlayerDeposit(walletAddress);
                 
                 ctx.reply('🔍 Checking your deposit on the blockchain...');
@@ -404,40 +434,67 @@ Click the button below to continue in a private message:
                     const message = `
 ❌ **Insufficient Deposit Detected**
 
-💰 Required: ${game.buyIn} WWT
-💰 Your Deposit: ${depositBalance} WWT
-💰 Still Needed: ${game.buyIn - parseFloat(depositBalance)} WWT
+💰 Required: ${game.buyIn} $WILDW tokens
+💰 Your Deposit: ${depositBalance} $WILDW tokens
+💰 Still Needed: ${game.buyIn - parseFloat(depositBalance)} $WILDW tokens
 
-**Please send the remaining tokens to:**
-\`${this.blockchain.contractAddress}\`
+📤 **Send remaining tokens to:**
+\`0x8129609E5303910464FCe3022a809fA44455Fe9A\`
 
-⏰ Game expires in ${Math.round((game.createdAt + 30*60*1000 - Date.now()) / 60000)} minutes
+⚠️ Send exactly from your registered wallet: \`${walletAddress}\`
 
 🔄 Use \`/confirm ${gameId}\` again after sending tokens
                     `;
                     return ctx.reply(message, { parse_mode: 'Markdown' });
                 }
                 
-                // ✅ Deposit verified! Create game on blockchain
-                const gameResult = await this.blockchain.createBlockchainGame(walletAddress, game.buyIn);
-                
-                // Update game status
-                game.status = 'waiting';
-                game.blockchainGameId = gameResult.gameId;
-                game.blockchainTxHash = gameResult.txHash;
-                
-                const message = `
-✅ **Game Confirmed!**
-
-� Game ID: \`${gameId}\`
-🎯 Status: Waiting for opponent
-🔗 Tx: ${this.blockchain.formatTransactionUrl(gameResult.txHash)}
-
-Share this game ID with someone to challenge them!
-They can join with: /join ${gameId}
-                `;
-                
-                ctx.reply(message, { parse_mode: 'Markdown' });
+                // ✅ Deposit verified! Update game state
+                if (isChallenger) {
+                    if (game.status === 'pending_challenger_deposit') {
+                        game.status = 'challenger_funded';
+                        ctx.reply(`✅ **Your challenge is now FUNDED!**\n\nWaiting for someone to join in the group chat. Game ID: \`${gameId}\``);
+                        
+                        // Notify group that challenge is now funded
+                        try {
+                            await this.bot.telegram.sendMessage(game.chatId, `💰 **Challenge ${gameId} is now FUNDED!**\n\n🎯 @${game.challengerName} is ready to battle!\n🏃‍♂️ Type \`/join ${gameId}\` to claim this challenge!`, { parse_mode: 'Markdown' });
+                        } catch (groupError) {
+                            console.log('Could not notify group of funded challenge:', groupError.message);
+                        }
+                    } else {
+                        ctx.reply('✅ Your deposit confirmed.');
+                    }
+                } else if (isOpponent) {
+                    if (game.status === 'opponent_joined') {
+                        // Check if challenger is also funded
+                        if (game.status !== 'challenger_funded' && game.status !== 'both_funded') {
+                            // Need to check challenger funding too
+                            const challengerBalance = await this.blockchain.getPlayerDeposit(game.challengerAddress);
+                            if (parseFloat(challengerBalance) >= game.buyIn) {
+                                game.status = 'both_funded';
+                            } else {
+                                game.status = 'opponent_funded_waiting_challenger';
+                                ctx.reply(`✅ **Your join is FUNDED!**\n\nWaiting for challenger to complete their funding...`);
+                                return;
+                            }
+                        } else {
+                            game.status = 'both_funded';
+                        }
+                        
+                        ctx.reply(`✅ **Both players funded! Battle begins!** 🎲`);
+                        
+                        // Notify group that battle is starting
+                        try {
+                            await this.bot.telegram.sendMessage(game.chatId, `🚀 **BATTLE BEGINS!**\n\n⚔️ ${game.challengerName} VS ${game.opponentName}\n💰 Buy-in: ${game.buyIn} $WILDW tokens\n\n🎲 Let the dice decide the winner!`, { parse_mode: 'Markdown' });
+                        } catch (groupError) {
+                            console.log('Could not notify group of battle start:', groupError.message);
+                        }
+                        
+                        // Start the blockchain game and rounds
+                        await this.startBlockchainGame(gameId);
+                    } else {
+                        ctx.reply('✅ Your deposit confirmed.');
+                    }
+                }
                 
             } catch (error) {
                 ctx.reply(`❌ Failed to confirm game: ${error.message}`);
@@ -610,14 +667,19 @@ Good luck! 🍀
             const userId = ctx.from.id;
             const args = ctx.message.text.split(' ');
             
+            // Must be in the same group chat as the challenge
+            if (ctx.chat.type === 'private') {
+                return ctx.reply('❌ **Join challenges in the group where they were posted!**\n\nGo back to the group chat and use `/join <gameId>` there.');
+            }
+            
             // Get user's payout wallet from database
             const walletAddress = await this.database.getUserWallet(userId);
             if (!walletAddress) {
-                return ctx.reply('❌ Please set your payout wallet first using /connect');
+                return ctx.reply('❌ Please set your payout wallet first using /connect (this can be done in private)');
             }
             
             if (args.length < 2) {
-                return ctx.reply('❌ Please specify game ID: /join 123');
+                return ctx.reply('❌ Please specify game ID: `/join 123`');
             }
             
             const gameId = args[1];
@@ -632,125 +694,65 @@ Good luck! 🍀
                     return ctx.reply('❌ You cannot join your own game.');
                 }
                 
-                if (game.status !== 'waiting') {
-                    return ctx.reply('❌ This game is no longer available.');
+                // Check if challenge is still open
+                if (game.status !== 'pending_challenger_deposit' && game.status !== 'challenger_funded') {
+                    return ctx.reply('❌ This challenge is no longer available.');
                 }
                 
-                // Update game with joiner info but don't start yet
+                // Check if challenge is in this group
+                if (game.chatId !== ctx.chat.id) {
+                    return ctx.reply('❌ You can only join challenges posted in this group!');
+                }
+                
+                // Check if someone already joined
+                if (game.opponent) {
+                    return ctx.reply('❌ Someone already claimed this challenge! Try joining faster next time.');
+                }
+                
+                // FIRST COME FIRST SERVE - CLAIM IT!
                 game.opponent = userId;
                 game.opponentAddress = walletAddress;
                 game.opponentName = ctx.from.username || `User${userId.toString().slice(-4)}`;
-                game.status = 'pending_join';
+                game.status = 'opponent_joined';
                 
-                const contractAddress = await this.blockchain.getContractAddress();
-                const message = `
-🎮 **Ready to Join Game ${gameId}!**
+                // PUBLIC notification in group
+                const claimedMessage = `
+🏆 **CHALLENGE CLAIMED!** 🏆
 
-💰 Buy-in: **${game.buyIn} $WILDW tokens**
-🎯 Challenge: Beat ${game.challengerName}'s dice rolls!
+🎯 **${ctx.from.username || `User${userId.toString().slice(-4)}`}** claimed the challenge!
+💰 **Buy-in**: ${game.buyIn} $WILDW tokens
+⚔️ **VS**: ${game.challengerName}
 
-🔒 **Please message me privately to fund this game securely**
-
-Click the button below to continue in a private message:
+🔒 Both players are now getting private funding instructions!
                 `;
                 
-                ctx.reply(message, { 
-                    parse_mode: 'Markdown',
-                    reply_markup: {
-                        inline_keyboard: [[
-                            { text: '🔒 Fund Join Privately', url: `https://t.me/${ctx.botInfo.username}?start=join_${gameId}` }
-                        ]]
-                    }
-                });
+                ctx.reply(claimedMessage, { parse_mode: 'Markdown' });
                 
-                // Set timeout for join confirmation
-                setTimeout(async () => {
-                    const currentGame = this.activeGames.get(gameId);
-                    if (currentGame && currentGame.status === 'pending_join') {
-                        currentGame.status = 'waiting';
-                        currentGame.opponent = null;
-                        currentGame.opponentAddress = null;
-                        currentGame.opponentName = null;
-                        ctx.reply(`⏰ Join timeout for game ${gameId}. The game is available for others to join again.`);
-                    }
-                }, 10 * 60 * 1000); // 10 minutes
-                
-            } catch (error) {
-                ctx.reply(`❌ Failed to join game: ${error.message}`);
-            }
-        });
-        
-        // Confirm join command (after manually sending tokens)
-        this.bot.command('confirm_join', async (ctx) => {
-            const userId = ctx.from.id;
-            const args = ctx.message.text.split(' ');
-            
-            // Recommend private message for funding confirmations
-            if (ctx.chat.type !== 'private') {
-                return ctx.reply('🔒 **Privacy Recommended**\n\nFor security, please confirm your join funding in a private message.\n\n👆 Click my username above and send the command privately.', { 
-                    parse_mode: 'Markdown',
-                    reply_markup: {
-                        inline_keyboard: [[
-                            { text: '💬 Message Bot Privately', url: `https://t.me/${ctx.botInfo.username}` }
-                        ]]
-                    }
-                });
-            }
-            
-            if (args.length < 2) {
-                return ctx.reply('❌ Please specify game ID: /confirm_join 123');
-            }
-            
-            const gameId = args[1];
-            
-            try {
-                const game = this.activeGames.get(gameId);
-                if (!game) {
-                    return ctx.reply('❌ Game not found. Make sure the game ID is correct.');
-                }
-                
-                if (game.opponent !== userId) {
-                    return ctx.reply('❌ You are not the player trying to join this game.');
-                }
-                
-                if (game.status !== 'pending_join') {
-                    return ctx.reply('❌ This game is not waiting for join confirmation.');
-                }
-                
-                // Verify player has deposited the required tokens
-                const depositBalance = await this.blockchain.getPlayerDeposit(game.opponentAddress);
-                
-                ctx.reply('🔍 Checking your deposit on the blockchain...');
-                
-                if (parseFloat(depositBalance) < game.buyIn) {
-                    const message = `
-❌ **Insufficient Deposit Detected**
+                // Send PRIVATE funding instructions to the joiner
+                try {
+                    const joinInstructions = `
+🔒 **PRIVATE FUNDING INSTRUCTIONS** 🔒
 
-💰 Required: ${game.buyIn} WWT
-💰 Your Deposit: ${depositBalance} WWT
-💰 Still Needed: ${game.buyIn - parseFloat(depositBalance)} WWT
+You claimed the challenge! Game ID: \`${gameId}\`
+💰 Buy-in: **${game.buyIn} $WILDW tokens**
 
-**Please send the remaining tokens to:**
-\`${this.blockchain.contractAddress}\`
+� **Send ${game.buyIn} $WILDW tokens to:**
+\`0x8129609E5303910464FCe3022a809fA44455Fe9A\`
 
-⏰ Join expires in ${Math.round((game.createdAt + 10*60*1000 - Date.now()) / 60000)} minutes
+✅ **After sending, confirm with:** \`/confirm ${gameId}\`
 
-🔄 Use \`/confirm_join ${gameId}\` again after sending tokens
+⚠️ Send exactly ${game.buyIn} tokens from your registered wallet: \`${walletAddress}\`
+
+🎯 Once you confirm, the battle can begin!
                     `;
-                    return ctx.reply(message, { parse_mode: 'Markdown' });
+                    
+                    await this.bot.telegram.sendMessage(userId, joinInstructions, { parse_mode: 'Markdown' });
+                } catch (privateError) {
+                    ctx.reply(`🔒 @${ctx.from.username || `User${userId.toString().slice(-4)}`} - Check your DMs for funding instructions!`);
                 }
                 
-                // ✅ Deposit verified! Join the blockchain game
-                const joinResult = await this.blockchain.joinBlockchainGame(gameId, game.opponentAddress);
-                
-                // Update local game state
-                game.status = 'active';
-                game.joinTxHash = joinResult.txHash;
-                
-                ctx.reply(`✅ Successfully joined game ${gameId}! The dice battle begins! 🎲\n🔗 Tx: ${this.blockchain.formatTransactionUrl(joinResult.txHash)}`);
-                await this.startGameRounds(gameId);
             } catch (error) {
-                ctx.reply(`❌ Failed to confirm join: ${error.message}`);
+                ctx.reply(`❌ Failed to join challenge: ${error.message}`);
             }
         });
         
@@ -1169,6 +1171,45 @@ Better luck next time! The pool continues to grow...
         game.status = 'active';
         
         return true;
+    }
+    
+    async startBlockchainGame(gameId) {
+        const game = this.activeGames.get(gameId);
+        if (!game) return;
+        
+        try {
+            // Create the blockchain game with both players funded
+            const gameResult = await this.blockchain.createBlockchainGame(game.challengerAddress, game.buyIn);
+            
+            // Join the opponent to the blockchain game
+            const joinResult = await this.blockchain.joinBlockchainGame(gameResult.gameId, game.opponentAddress);
+            
+            // Update local game state
+            game.status = 'active';
+            game.blockchainGameId = gameResult.gameId;
+            game.createTxHash = gameResult.txHash;
+            game.joinTxHash = joinResult.txHash;
+            
+            // Start the actual dice rounds
+            await this.startGameRounds(gameId);
+            
+        } catch (error) {
+            console.error('Failed to start blockchain game:', error);
+            
+            // Notify both players of the error
+            const errorMessage = `❌ **Failed to start blockchain game:**\n${error.message}`;
+            
+            try {
+                await this.bot.telegram.sendMessage(game.challenger, errorMessage);
+                await this.bot.telegram.sendMessage(game.opponent, errorMessage);
+                await this.bot.telegram.sendMessage(game.chatId, `❌ **Game ${gameId} failed to start:** ${error.message}`);
+            } catch (notifyError) {
+                console.error('Failed to notify players of error:', notifyError);
+            }
+            
+            // Clean up the failed game
+            this.activeGames.delete(gameId);
+        }
     }
     
     async startGameRounds(gameId) {

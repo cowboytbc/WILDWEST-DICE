@@ -103,7 +103,7 @@ Contract: \`0x8129609E5303910464FCe3022a809fA44455Fe9A\`
 • Automatic payout to your registered wallet address
 
 **🎰 LOTTERY BONUS:**
-• Roll ⚅ ⚅ (double 6s) to trigger lottery chance
+• WIN games to earn lottery roll opportunities
 • If your dice total = 7 or 11, WIN THE ENTIRE LOTTERY POOL!
 • Lottery pool grows from all game fees
 
@@ -127,7 +127,7 @@ Contract: \`0x8129609E5303910464FCe3022a809fA44455Fe9A\`
 
 **🎰 Lottery System:**
 • 1% fee builds up jackpot pool
-• Roll double 6s (⚅ ⚅) to trigger lottery
+• WIN games to earn lottery roll opportunities
 • Roll 7 or 11 total to win entire $WILDW pool!
 
 💡 **One-time setup:** Set your payout address once and you're ready to play! 💰
@@ -354,7 +354,7 @@ Your challenge is live! Game ID: \`${gameId}\`
 💰 Buy-in: **${buyInAmount} $WILDW tokens**
 
 📤 **Send ${buyInAmount} $WILDW tokens to:**
-\`0x8129609E5303910464FCe3022a809fA44455Fe9A\`
+\`0xb70616D6887e92CEE7eC7D5966c77AbEB0b27B15\`
 
 ✅ **After sending, confirm with:** \`/confirm ${gameId}\`
 
@@ -439,7 +439,7 @@ Your challenge is live! Game ID: \`${gameId}\`
 💰 Still Needed: ${game.buyIn - parseFloat(depositBalance)} $WILDW tokens
 
 📤 **Send remaining tokens to:**
-\`0x8129609E5303910464FCe3022a809fA44455Fe9A\`
+\`0xb70616D6887e92CEE7eC7D5966c77AbEB0b27B15\`
 
 ⚠️ Send exactly from your registered wallet: \`${walletAddress}\`
 
@@ -736,8 +736,8 @@ Good luck! 🍀
 You claimed the challenge! Game ID: \`${gameId}\`
 💰 Buy-in: **${game.buyIn} $WILDW tokens**
 
-� **Send ${game.buyIn} $WILDW tokens to:**
-\`0x8129609E5303910464FCe3022a809fA44455Fe9A\`
+📤 **Send ${game.buyIn} $WILDW tokens to:**
+\`0xb70616D6887e92CEE7eC7D5966c77AbEB0b27B15\`
 
 ✅ **After sending, confirm with:** \`/confirm ${gameId}\`
 
@@ -912,7 +912,7 @@ Contract: \`0x8129609E5303910464FCe3022a809fA44455Fe9A\`
 • Automatic payout to your registered wallet address
 
 **🎰 LOTTERY BONUS:**
-• Roll ⚅ ⚅ (double 6s) to trigger lottery chance
+• WIN games to earn lottery roll opportunities
 • If your dice total = 7 or 11, WIN THE ENTIRE LOTTERY POOL!
 • Lottery pool grows from all game fees
 
@@ -936,7 +936,7 @@ Contract: \`0x8129609E5303910464FCe3022a809fA44455Fe9A\`
 
 **🎰 Lottery System:**
 • 1% fee builds up jackpot pool
-• Roll double 6s (⚅ ⚅) to trigger lottery
+• WIN games to earn lottery roll opportunities
 • Roll 7 or 11 total to win entire $WILDW pool!
 
 💡 **One-time setup:** Set your payout address once and you're ready to play! 💰

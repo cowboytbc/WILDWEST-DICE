@@ -2,7 +2,6 @@ const { Telegraf, Markup } = require('telegraf');
 const { ethers } = require('ethers');
 const BlockchainService = require('./blockchain');
 const DatabaseService = require('./database');
-const http = require('http');
 require('dotenv').config();
 
 class DiceBotGame {
@@ -16,30 +15,8 @@ class DiceBotGame {
         
         this.setupCommands();
         this.setupCallbacks();
-        this.setupHealthCheck(); // For Render deployment
     }
     
-    setupHealthCheck() {
-        const port = process.env.PORT || 3000;
-        const server = http.createServer((req, res) => {
-            if (req.url === '/health' || req.url === '/') {
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ 
-                    status: 'healthy', 
-                    service: 'WildWest Dice Bot',
-                    timestamp: new Date().toISOString(),
-                    activeGames: this.activeGames.size
-                }));
-            } else {
-                res.writeHead(404);
-                res.end();
-            }
-        });
-        
-        server.listen(port, () => {
-            console.log(`🌐 Health check server running on port ${port}`);
-        });
-    }
     
     setupCommands() {
         this.bot.command('start', async (ctx) => {

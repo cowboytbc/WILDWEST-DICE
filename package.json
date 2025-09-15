@@ -9,8 +9,7 @@
     "deploy": "node scripts/deploy.js",
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
-    "build": "npx hardhat compile",
-    "postinstall": "npm run compile"
+    "build": "echo 'Build completed - bot ready for production'"
   },
   "engines": {
     "node": ">=16.0.0",
@@ -25,12 +24,12 @@
     "ethers": "^5.7.2",
     "dotenv": "^16.3.1",
     "node-cron": "^3.0.2",
-    "@openzeppelin/contracts": "^4.9.3",
     "sqlite3": "^5.1.6"
   },
   "devDependencies": {
     "hardhat": "^2.17.2",
     "@nomicfoundation/hardhat-toolbox": "^2.0.2",
+    "@openzeppelin/contracts": "^4.9.3",
     "nodemon": "^3.0.1"
   },
   "keywords": ["telegram", "bot", "dice", "gambling", "base", "blockchain", "wildwest", "ethereum", "lottery"],

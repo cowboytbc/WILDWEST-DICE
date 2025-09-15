@@ -16,7 +16,7 @@ Before deploying, gather these values:
 ```bash
 # Telegram Configuration
 TELEGRAM_BOT_TOKEN=1234567890:ABCdefGHIjklMNOpqrSTUvwxyz
-TELEGRAM_BOT_USERNAME=your_bot_username
+TELEGRAM_BOT_USERNAME=WILDWESTDICE_bot
 
 # Blockchain Configuration  
 PRIVATE_KEY=your_wallet_private_key_here

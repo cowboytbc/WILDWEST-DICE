@@ -2,6 +2,7 @@
 
 A Telegram dice gambling bot using WildWest tokens on Base blockchain with lottery system and persistent user data.
 
+**Telegram Bot**: @WILDWESTDICE_bot  
 **GitHub Repository**: [https://github.com/cowboytbc/WILDWEST-DICE](https://github.com/cowboytbc/WILDWEST-DICE)
 
 ## Features

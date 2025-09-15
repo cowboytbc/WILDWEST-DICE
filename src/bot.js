@@ -15,6 +15,32 @@ class DiceBotGame {
         
         this.setupCommands();
         this.setupCallbacks();
+        this.setupBotCommands(); // Set up command menu for Telegram
+    }
+    
+    async setupBotCommands() {
+        // Set up command menu that appears when users type /
+        const commands = [
+            { command: 'start', description: '🚀 Start the WildWest Dice Bot' },
+            { command: 'connect', description: '🔗 Connect your payout wallet' },
+            { command: 'create', description: '🎲 Create a new dice game' },
+            { command: 'join', description: '🃏 Join an existing game' },
+            { command: 'games', description: '📋 View available games' },
+            { command: 'mygames', description: '👤 View your active games' },
+            { command: 'stats', description: '📊 Check your game statistics' },
+            { command: 'lottery', description: '🎰 Check lottery pool status' },
+            { command: 'leaderboard', description: '🏆 View top players' },
+            { command: 'jackpot', description: '💰 Check current jackpot' },
+            { command: 'payout', description: '💳 View your payout address' },
+            { command: 'help', description: '❓ Get help and instructions' }
+        ];
+        
+        try {
+            await this.bot.telegram.setMyCommands(commands);
+            console.log('✅ Bot commands menu set up successfully');
+        } catch (error) {
+            console.error('❌ Failed to set up bot commands:', error);
+        }
     }
     
     

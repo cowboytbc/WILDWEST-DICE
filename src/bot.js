@@ -22,6 +22,7 @@ class DiceBotGame {
         // Set up command menu that appears when users type /
         const commands = [
             { command: 'start', description: '🚀 Start the WildWest Dice Bot' },
+            { command: 'howtoplay', description: '📖 Detailed game instructions' },
             { command: 'connect', description: '🔗 Connect your payout wallet' },
             { command: 'create', description: '🎲 Create a new dice game' },
             { command: 'join', description: '🃏 Join an existing game' },
@@ -75,35 +76,60 @@ class DiceBotGame {
 
 Welcome to the ultimate dice gambling experience on Base!
 
-**How to play:**
-• Each player rolls 2 dice per round, 3 rounds total (best of 3)
-• Highest total score wins
-• Snake eyes (⚀ ⚀) = instant loss 
-• If both roll snake eyes on same round, game continues and snake eyes = 2 points
-• Winner takes all minus 1% house fee
+🪙 **ONLY ACCEPTS $WILDW TOKENS** 🪙
+Contract: 0x8129609E5303910464FCe3022a809fA44455Fe9A
+
+**🎯 HOW THE GAME WORKS:**
+
+**Game Setup:**
+• Player 1 creates a game with a buy-in amount (e.g., 100 $WILDW)
+• Player 2 joins by matching the same buy-in amount
+• Both players deposit $WILDW tokens into the smart contract escrow
+
+**Game Play (Best of 3 Rounds):**
+• Each round: Both players roll 2 dice simultaneously
+• Your dice total = Dice 1 + Dice 2 (range: 2-12)
+• Higher total wins the round
+• First to win 2 rounds wins the entire pot!
+
+**🐍 SNAKE EYES RULE:**
+• Rolling ⚀ ⚀ (both dice showing 1) = INSTANT LOSS
+• Exception: If both players roll snake eyes in same round, game continues with 2 points each
+
+**💰 PAYOUTS:**
+• Winner takes 99% of the total pot (198 $WILDW from 200 $WILDW pot)
+• 1% house fee goes to lottery jackpot pool
+• Automatic payout to your registered wallet address
+
+**🎰 LOTTERY BONUS:**
+• Roll ⚅ ⚅ (double 6s) to trigger lottery chance
+• If your dice total = 7 or 11, WIN THE ENTIRE LOTTERY POOL!
+• Lottery pool grows from all game fees
 
 **Commands:**
 /connect - Instructions to set payout wallet
 /wallet <address> - Set your payout address (one-time setup)
 /payout - View your current payout address
-/create <amount> - Create new game (manual token sending)
-/confirm <gameId> - Confirm game after sending tokens
+/create <amount> - Create new game (send $WILDW tokens)
+/confirm <gameId> - Confirm game after sending $WILDW tokens
 /join <gameId> - Join an existing game 
-/confirm_join <gameId> - Confirm join after sending tokens
+/confirm_join <gameId> - Confirm join after sending $WILDW tokens
 /games - View available games
 /mygames - View your active games
 /stats [username] - View player statistics
 /scoreboard - View top players leaderboard
 /jackpot - Check current lottery jackpot amount
 /lottery - View lottery details
+/howtoplay - Complete detailed game guide
 /help - Show this help message
 
 **🎰 Lottery System:**
 • 1% fee builds up jackpot pool
 • Roll double 6s (⚅ ⚅) to trigger lottery
-• Roll 7 or 11 total to win entire pool!
+• Roll 7 or 11 total to win entire $WILDW pool!
 
 💡 **One-time setup:** Set your payout address once and you're ready to play! 💰
+💰 **Get $WILDW tokens on Base network to start gambling!**
 
 🔒 **Privacy:** Payout addresses and funding are handled in private messages for security.
             `;
@@ -299,7 +325,7 @@ Example: \`/wallet 0x742d35Cc6b392e82e721C4C8c2b1c93d0E3d0123\`
 🎮 **Game Created!**
 
 🆔 Game ID: \`${gameId}\`
-💰 Buy-in: ${buyInAmount} WWT
+💰 Buy-in: ${buyInAmount} $WILDW tokens
 📍 Your payout address: \`${walletAddress}\`
 
 � **Please message me privately to fund this game securely**
@@ -677,7 +703,7 @@ They can join with: /join ${gameId}
                 const message = `
 🎮 **Ready to Join Game ${gameId}!**
 
-💰 Buy-in: **${game.buyIn} WWT**
+💰 Buy-in: **${game.buyIn} $WILDW tokens**
 🎯 Challenge: Beat ${game.challengerName}'s dice rolls!
 
 🔒 **Please message me privately to fund this game securely**
@@ -820,6 +846,71 @@ Click the button below to continue in a private message:
             });
             
             ctx.reply(message, { parse_mode: 'Markdown' });
+        });
+        
+        this.bot.command('howtoplay', (ctx) => {
+            const detailedInstructions = `
+📖 **COMPLETE GAME GUIDE - WildWest Dice** 📖
+
+**🪙 TOKEN REQUIREMENTS:**
+• Only accepts $WILDW tokens on Base network
+• Contract: 0x8129609E5303910464FCe3022a809fA44455Fe9A
+• Get $WILDW from DEX or swap platforms
+
+**⚙️ INITIAL SETUP:**
+1. Set your payout wallet: \`/wallet <your_address>\`
+2. Verify it's saved: \`/payout\`
+3. You're ready to play!
+
+**🎲 CREATING A GAME:**
+1. \`/create <amount>\` (e.g., \`/create 100\`)
+2. Send $WILDW tokens to the contract address
+3. \`/confirm <gameId>\` to activate your game
+4. Wait for another player to join
+
+**🃏 JOINING A GAME:**
+1. \`/games\` to see available games
+2. \`/join <gameId>\` to join a game
+3. Send matching $WILDW amount to contract
+4. \`/confirm_join <gameId>\` to start playing
+
+**🎯 GAMEPLAY MECHANICS:**
+• **Best of 3 rounds** - first to win 2 rounds wins all
+• **Each round:** Both players roll 2 dice simultaneously
+• **Dice totals:** 2-12 (sum of both dice)
+• **Higher total wins the round**
+
+**🚨 SNAKE EYES (⚀ ⚀):**
+• Both dice showing 1 = INSTANT GAME LOSS
+• Exception: Both players roll snake eyes = 2 points each, continue
+
+**💰 WINNING & PAYOUTS:**
+• Winner gets 99% of total pot (e.g., 198 from 200 $WILDW)
+• 1% fee goes to lottery jackpot
+• Automatic payout to your wallet address
+
+**🎰 LOTTERY SYSTEM:**
+• Roll ⚅ ⚅ (double 6s) = Lottery trigger!
+• If dice total = 7 or 11, WIN ENTIRE LOTTERY POOL
+• Pool builds from all 1% game fees
+
+**📊 EXAMPLE GAME:**
+Player A creates 100 $WILDW game → Player B joins with 100 $WILDW
+Total pot: 200 $WILDW
+Round 1: A rolls [⚃⚁]=4, B rolls [⚄⚂]=7 → B wins
+Round 2: A rolls [⚅⚃]=9, B rolls [⚂⚁]=3 → A wins  
+Round 3: A rolls [⚅⚅]=12, B rolls [⚄⚄]=10 → A wins game!
+A gets 198 $WILDW, 2 $WILDW to lottery
+
+**🔒 SECURITY:**
+• Smart contract escrow holds all funds
+• No human intervention in payouts
+• Provably fair dice using Telegram's system
+
+Ready to gamble? Start with \`/create <amount>\`! 🎲
+            `;
+            
+            ctx.reply(detailedInstructions, { parse_mode: 'Markdown' });
         });
         
         this.bot.command('help', (ctx) => {

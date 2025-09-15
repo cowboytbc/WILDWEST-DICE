@@ -78,7 +78,7 @@ class DiceBotGame {
 Welcome to the ultimate dice gambling experience on Base!
 
 🪙 **ONLY ACCEPTS $WILDW TOKENS** 🪙
-Contract: `0x8129609E5303910464FCe3022a809fA44455Fe9A`
+Contract: \`0x8129609E5303910464FCe3022a809fA44455Fe9A\`
 
 **🎯 HOW THE GAME WORKS:**
 
@@ -600,71 +600,6 @@ Good luck! 🍀
             }
         });
         
-        this.bot.command('create', async (ctx) => {
-            const userId = ctx.from.id;
-            const args = ctx.message.text.split(' ');
-            
-            if (!this.userWallets.has(userId)) {
-                return ctx.reply('❌ Please connect your wallet first using /connect');
-            }
-            
-            if (args.length < 2) {
-                return ctx.reply('❌ Please specify buy-in amount: /create 100');
-            }
-            
-            const buyInAmount = parseFloat(args[1]);
-            if (isNaN(buyInAmount) || buyInAmount <= 0) {
-                return ctx.reply('❌ Invalid buy-in amount. Must be a positive number.');
-            }
-            
-            const walletAddress = this.userWallets.get(userId);
-            
-            try {
-                // Check if player has enough deposited tokens
-                const depositBalance = await this.blockchain.getPlayerDeposit(walletAddress);
-                if (parseFloat(depositBalance) < buyInAmount) {
-                    return ctx.reply(`❌ Insufficient deposited tokens. You have ${depositBalance} WWT deposited, need ${buyInAmount} WWT. Use /deposit to deposit more tokens.`);
-                }
-                
-                const gameResult = await this.blockchain.createBlockchainGame(walletAddress, buyInAmount);
-                const gameId = gameResult.gameId;
-                
-                // Store game in local state
-                this.activeGames.set(gameId, {
-                    id: gameId,
-                    challenger: userId,
-                    challengerAddress: walletAddress,
-                    challengerName: `User${userId.toString().slice(-4)}`,
-                    opponent: null,
-                    opponentAddress: null,
-                    buyIn: buyInAmount,
-                    status: 'waiting',
-                    rounds: [],
-                    currentRound: 0,
-                    challengerScore: 0,
-                    opponentScore: 0,
-                    createdAt: Date.now(),
-                    blockchainTxHash: gameResult.txHash
-                });
-                
-                const message = `
-🎮 **Game Created!**
-
-🆔 Game ID: \`${gameId}\`
-💰 Buy-in: ${buyInAmount} WWT
-🎯 Status: Waiting for opponent
-🔗 Tx: ${this.blockchain.formatTransactionUrl(gameResult.txHash)}
-
-Share this game ID with someone to challenge them!
-They can join with: /join ${gameId}
-                `;
-                
-                ctx.reply(message, { parse_mode: 'Markdown' });
-            } catch (error) {
-                ctx.reply(`❌ Failed to create game: ${error.message}`);
-            }
-        });
-        
         this.bot.command('join', async (ctx) => {
             const userId = ctx.from.id;
             const args = ctx.message.text.split(' ');
@@ -856,7 +791,7 @@ Click the button below to continue in a private message:
 
 **🪙 TOKEN REQUIREMENTS:**
 • Only accepts $WILDW tokens on Base network
-• Contract: `0x8129609E5303910464FCe3022a809fA44455Fe9A`
+• Contract: \`0x8129609E5303910464FCe3022a809fA44455Fe9A\`
 • Get $WILDW from DEX or swap platforms
 
 **⚙️ INITIAL SETUP:**
@@ -937,8 +872,113 @@ Ready to play? Get some $WILDW and use \`/create <amount>\`! 🎲
         });
         
         this.bot.command('help', (ctx) => {
-            ctx.command('start')(ctx);
+            // Reuse the start command functionality
+            const welcomeMessage = `
+🎲 **WildWest Dice Bot** 🎲
+
+Welcome to the ultimate dice gambling experience on Base!
+
+🪙 **ONLY ACCEPTS $WILDW TOKENS** 🪙
+Contract: \`0x8129609E5303910464FCe3022a809fA44455Fe9A\`
+
+**🎯 HOW THE GAME WORKS:**
+
+**Game Setup:**
+• Player 1 creates a game with a buy-in amount (e.g., 100 $WILDW)
+• Player 2 joins by matching the same buy-in amount
+• Both players deposit $WILDW tokens into the smart contract escrow
+
+**Game Play (Best of 3 Rounds):**
+• Each round: Both players roll 2 dice simultaneously
+• Your dice total = Dice 1 + Dice 2 (range: 2-12)
+• Higher total wins the round
+• First to win 2 rounds wins the entire pot!
+
+**🐍 SNAKE EYES RULE:**
+• Rolling ⚀ ⚀ (both dice showing 1) = INSTANT LOSS
+• Exception: If both players roll snake eyes in same round, game continues with 2 points each
+
+**💰 PAYOUTS:**
+• Winner takes 99% of the total pot (198 $WILDW from 200 $WILDW pot)
+• 1% house fee goes to lottery jackpot pool
+• Automatic payout to your registered wallet address
+
+**🎰 LOTTERY BONUS:**
+• Roll ⚅ ⚅ (double 6s) to trigger lottery chance
+• If your dice total = 7 or 11, WIN THE ENTIRE LOTTERY POOL!
+• Lottery pool grows from all game fees
+
+**Commands:**
+/contract - Get $WILDW contract address for easy copying
+/connect - Instructions to set payout wallet
+/wallet <address> - Set your payout address (one-time setup)
+/payout - View your current payout address
+/create <amount> - Create new game (send $WILDW tokens)
+/confirm <gameId> - Confirm game after sending $WILDW tokens
+/join <gameId> - Join an existing game 
+/confirm_join <gameId> - Confirm join after sending $WILDW tokens
+/games - View available games
+/mygames - View your active games
+/stats [username] - View player statistics
+/scoreboard - View top players leaderboard
+/jackpot - Check current lottery jackpot amount
+/lottery - View lottery details
+/howtoplay - Complete detailed game guide
+/help - Show this help message
+
+**🎰 Lottery System:**
+• 1% fee builds up jackpot pool
+• Roll double 6s (⚅ ⚅) to trigger lottery
+• Roll 7 or 11 total to win entire $WILDW pool!
+
+💡 **One-time setup:** Set your payout address once and you're ready to play! 💰
+💰 **Get $WILDW tokens on Base network to start gambling!**
+
+🔒 **Privacy:** Payout addresses and funding are handled in private messages for security.
+            `;
+            
+            ctx.reply(welcomeMessage, { parse_mode: 'Markdown' });
         });
+
+        // Add a general command error handler for invalid commands
+        this.bot.on('text', (ctx) => {
+            const text = ctx.message.text;
+            
+            // Only handle messages that start with / but aren't valid commands
+            if (text.startsWith('/') && !this.isValidCommand(text)) {
+                const commandHelp = `
+❌ **Unknown Command**
+
+🤖 **Available Commands:**
+/start - Get started and see all instructions
+/contract - Get $WILDW contract address  
+/howtoplay - Detailed game guide
+/connect - Set up your payout wallet
+/create <amount> - Create new game (example: /create 100)
+/join <gameId> - Join a game (example: /join ABC123)
+/games - View available games
+/mygames - View your active games  
+/stats - Check your statistics
+/lottery - Check lottery pool
+/help - Show help menu
+
+💡 **Need help?** Use /howtoplay for detailed instructions!
+                `;
+                
+                ctx.reply(commandHelp, { parse_mode: 'Markdown' });
+            }
+        });
+    }
+
+    isValidCommand(text) {
+        const validCommands = [
+            '/start', '/help', '/contract', '/howtoplay', '/connect', '/wallet', '/payout',
+            '/create', '/confirm', '/join', '/confirm_join', '/games', '/mygames', 
+            '/stats', '/lottery', '/jackpot', '/scoreboard', '/leaderboard'
+        ];
+        
+        const command = text.split(' ')[0].toLowerCase();
+        return validCommands.includes(command);
     }
     
     async handlePrivateFunding(ctx, gameId, type) {

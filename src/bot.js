@@ -76,9 +76,9 @@ class DiceBotGame {
 Welcome to the ultimate dice gambling experience on Base!
 
 **How to play:**
-• Roll dice 3 times (best of 3)
+• Each player rolls 2 dice per round, 3 rounds total (best of 3)
 • Highest total score wins
-• Snake eyes (🎲🎲) = instant loss
+• Snake eyes (⚀ ⚀) = instant loss 
 • If both roll snake eyes on same round, game continues and snake eyes = 2 points
 • Winner takes all minus 1% house fee
 
@@ -100,7 +100,7 @@ Welcome to the ultimate dice gambling experience on Base!
 
 **🎰 Lottery System:**
 • 1% fee builds up jackpot pool
-• Roll double 6s to trigger lottery
+• Roll double 6s (⚅ ⚅) to trigger lottery
 • Roll 7 or 11 total to win entire pool!
 
 💡 **One-time setup:** Set your payout address once and you're ready to play! 💰
@@ -895,15 +895,30 @@ After sending tokens, use: \`/${type === 'create' ? 'confirm' : 'confirm_join'} 
             await ctx.answerCbQuery('Rolling lottery dice...');
             
             try {
-                const walletAddress = this.userWallets.get(userId);
-                const lotteryResult = await this.blockchain.rollLottery(gameId, walletAddress);
+                // First, send visual dice animations (2 dice)
+                const dice1Message = await ctx.replyWithDice();
+                const dice2Message = await ctx.replyWithDice();
                 
-                const dice1Emoji = this.getDiceEmoji(lotteryResult.dice1);
-                const dice2Emoji = this.getDiceEmoji(lotteryResult.dice2);
-                const total = lotteryResult.dice1 + lotteryResult.dice2;
-                
-                if (lotteryResult.won) {
-                    const message = `
+                // Wait for dice animations to complete (4 seconds each)
+                setTimeout(async () => {
+                    const dice1Value = dice1Message.dice.value;
+                    const dice2Value = dice2Message.dice.value;
+                    const total = dice1Value + dice2Value;
+                    
+                    // Process lottery with visual dice results
+                    const walletAddress = this.userWallets.get(userId);
+                    
+                    // Check if lottery win (7 or 11)
+                    const isWinner = (total === 7 || total === 11);
+                    
+                    if (isWinner) {
+                        // Call blockchain to process lottery win
+                        const lotteryResult = await this.blockchain.rollLottery(gameId, walletAddress);
+                        
+                        const dice1Emoji = this.getDiceEmoji(dice1Value);
+                        const dice2Emoji = this.getDiceEmoji(dice2Value);
+                        
+                        const message = `
 🎰💰 **LOTTERY JACKPOT!** 💰🎰
 
 ${dice1Emoji} + ${dice2Emoji} = ${total}
@@ -914,10 +929,13 @@ ${dice1Emoji} + ${dice2Emoji} = ${total}
 🔗 Tx: ${this.blockchain.formatTransactionUrl(lotteryResult.txHash)}
 
 Congratulations! The pool has been reset to 0.
-                    `;
-                    await ctx.editMessageText(message, { parse_mode: 'Markdown' });
-                } else {
-                    const message = `
+                        `;
+                        await ctx.reply(message, { parse_mode: 'Markdown' });
+                    } else {
+                        const dice1Emoji = this.getDiceEmoji(dice1Value);
+                        const dice2Emoji = this.getDiceEmoji(dice2Value);
+                        
+                        const message = `
 🎰 **Lottery Roll**
 
 ${dice1Emoji} + ${dice2Emoji} = ${total}
@@ -925,11 +943,14 @@ ${dice1Emoji} + ${dice2Emoji} = ${total}
 😢 No luck this time! You needed 7 or 11.
 
 Better luck next time! The pool continues to grow...
-                    `;
-                    await ctx.editMessageText(message, { parse_mode: 'Markdown' });
-                }
+                        `;
+                        await ctx.reply(message, { parse_mode: 'Markdown' });
+                    }
+                }, 8000); // Wait 8 seconds for both dice animations
+                
             } catch (error) {
-                await ctx.editMessageText(`❌ Lottery roll failed: ${error.message}`);
+                console.error('Lottery roll error:', error);
+                await ctx.reply(`❌ Error rolling lottery: ${error.message}`);
             }
         });
     }
@@ -1022,15 +1043,18 @@ Waiting for ${game.challengerName} to roll...
     }
     
     async handleDiceRoll(ctx, gameId, userId) {
-        // Use Telegram's built-in dice animation
-        const diceResult = await ctx.replyWithDice();
+        // Use Telegram's built-in dice animation (roll 2 dice for each player)
+        const dice1Result = await ctx.replyWithDice();
+        const dice2Result = await ctx.replyWithDice();
         
         setTimeout(() => {
-            this.processDiceRoll(gameId, userId, diceResult.dice.value);
-        }, 4000); // Wait for dice animation to complete
+            const dice1Value = dice1Result.dice.value;
+            const dice2Value = dice2Result.dice.value;
+            this.processDiceRoll(gameId, userId, dice1Value, dice2Value);
+        }, 4000); // Wait for dice animations to complete
     }
     
-    async processDiceRoll(gameId, userId, diceValue) {
+    async processDiceRoll(gameId, userId, dice1Value, dice2Value) {
         const game = this.activeGames.get(gameId);
         if (!game) return;
         
@@ -1043,7 +1067,13 @@ Waiting for ${game.challengerName} to roll...
         const isChallenger = game.challenger === userId;
         const playerKey = isChallenger ? 'challenger' : 'opponent';
         
-        game.rounds[currentRound][playerKey] = diceValue;
+        // Store both dice values and total
+        game.rounds[currentRound][playerKey] = {
+            dice1: dice1Value,
+            dice2: dice2Value,
+            total: dice1Value + dice2Value,
+            isSnakeEyes: dice1Value === 1 && dice2Value === 1
+        };
         
         // Check if both players have rolled
         const round = game.rounds[currentRound];
@@ -1069,30 +1099,34 @@ Waiting for ${game.challengerName} to roll...
         const game = this.activeGames.get(gameId);
         const round = game.rounds[roundIndex];
         
-        const challengerRoll = round.challenger;
-        const opponentRoll = round.opponent;
+        const challengerData = round.challenger;
+        const opponentData = round.opponent;
         
         let roundResult = '';
-        let challengerRoundScore = challengerRoll;
-        let opponentRoundScore = opponentRoll;
+        let challengerRoundScore = challengerData.total;
+        let opponentRoundScore = opponentData.total;
         
-        // Check for snake eyes (1,1)
-        const challengerSnakeEyes = challengerRoll === 1;
-        const opponentSnakeEyes = opponentRoll === 1;
-        
-        if (challengerSnakeEyes && opponentSnakeEyes) {
+        // Check for snake eyes (both dice = 1)
+        if (challengerData.isSnakeEyes && opponentData.isSnakeEyes) {
             // Both rolled snake eyes - continue with 2 points each
             challengerRoundScore = 2;
             opponentRoundScore = 2;
-            roundResult = '🐍 Both rolled snake eyes! 2 points each, game continues!';
-        } else if (challengerSnakeEyes) {
+            roundResult = '🐍🐍 Both rolled snake eyes! 2 points each, game continues!';
+        } else if (challengerData.isSnakeEyes) {
             // Challenger loses immediately
-            return await this.endGame(gameId, game.opponent, 'Snake eyes!');
-        } else if (opponentSnakeEyes) {
+            return await this.endGame(gameId, game.opponent, 'Snake eyes! 🐍🐍');
+        } else if (opponentData.isSnakeEyes) {
             // Opponent loses immediately  
-            return await this.endGame(gameId, game.challenger, 'Snake eyes!');
+            return await this.endGame(gameId, game.challenger, 'Snake eyes! 🐍🐍');
         } else {
-            roundResult = `Round ${roundIndex + 1} Results:\n${game.challengerName}: ${challengerRoll}\n${game.opponentName}: ${opponentRoll}`;
+            const challengerDice1 = this.getDiceEmoji(challengerData.dice1);
+            const challengerDice2 = this.getDiceEmoji(challengerData.dice2);
+            const opponentDice1 = this.getDiceEmoji(opponentData.dice1);
+            const opponentDice2 = this.getDiceEmoji(opponentData.dice2);
+            
+            roundResult = `Round ${roundIndex + 1} Results:
+${game.challengerName}: ${challengerDice1} ${challengerDice2} = ${challengerData.total}
+${game.opponentName}: ${opponentDice1} ${opponentDice2} = ${opponentData.total}`;
         }
         
         game.challengerScore += challengerRoundScore;

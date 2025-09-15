@@ -15,7 +15,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract DiceGameEscrow is ReentrancyGuard, Ownable {
     IERC20 public immutable wildWestToken;
-    address public constant TAX_WALLET = 0x9360c80CA79409b5e315A9791bB0208C02D6ae32;
     uint256 public constant TAX_RATE = 100; // 1% = 100 basis points out of 10000
     uint256 public constant BASIS_POINTS = 10000;
     
@@ -213,27 +212,6 @@ contract DiceGameEscrow is ReentrancyGuard, Ownable {
         require(wildWestToken.transfer(msg.sender, _amount), "Withdrawal failed");
     }
     
-    // Admin function - you pay gas to complete games and send winnings
-    function completeGameAsAdmin(uint256 _gameId, address _winner) external onlyOwner nonReentrant {
-        Game storage game = games[_gameId];
-        require(game.state == GameState.InProgress, "Game not in progress");
-        require(_winner == game.challenger || _winner == game.opponent, "Invalid winner");
-        
-        uint256 totalPot = game.buyIn * 2;
-        uint256 tax = (totalPot * TAX_RATE) / BASIS_POINTS;
-        uint256 payout = totalPot - tax;
-        
-        game.winner = _winner;
-        game.state = GameState.Completed;
-        
-        // Transfer tax to tax wallet (admin pays gas)
-        require(wildWestToken.transfer(TAX_WALLET, tax), "Tax transfer failed");
-        
-        // Transfer winnings to winner (admin pays gas)
-        require(wildWestToken.transfer(_winner, payout), "Payout transfer failed");
-        
-        emit GameCompleted(_gameId, _winner, payout, tax);
-    }
     
     function getGame(uint256 _gameId) external view returns (Game memory) {
         return games[_gameId];

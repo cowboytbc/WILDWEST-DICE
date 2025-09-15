@@ -2,7 +2,7 @@ const { ethers } = require('ethers');
 
 class BlockchainService {
     constructor() {
-        this.provider = new ethers.JsonRpcProvider(process.env.BASE_RPC_URL || process.env.RPC_URL);
+        this.provider = new ethers.providers.JsonRpcProvider(process.env.BASE_RPC_URL || process.env.RPC_URL);
         this.wallet = new ethers.Wallet(process.env.PRIVATE_KEY, this.provider);
         
         // Contract ABI (Application Binary Interface)

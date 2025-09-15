@@ -22,15 +22,15 @@
   },
   "dependencies": {
     "telegraf": "^4.15.6",
-    "ethers": "^6.7.1",
+    "ethers": "^5.7.2",
     "dotenv": "^16.3.1",
     "node-cron": "^3.0.2",
-    "@openzeppelin/contracts": "^5.0.0",
+    "@openzeppelin/contracts": "^4.9.3",
     "sqlite3": "^5.1.6"
   },
   "devDependencies": {
     "hardhat": "^2.17.2",
-    "@nomicfoundation/hardhat-toolbox": "^3.0.2",
+    "@nomicfoundation/hardhat-toolbox": "^2.0.2",
     "nodemon": "^3.0.1"
   },
   "keywords": ["telegram", "bot", "dice", "gambling", "base", "blockchain", "wildwest", "ethereum", "lottery"],

@@ -26,7 +26,7 @@ async function main() {
     const estimatedCost = estimatedGas * feeData.gasPrice;
     
     console.log(`⛽ Estimated gas: ${estimatedGas.toString()}`);
-    console.log(`💰 Estimated cost: ${hre.ethers.formatEther(estimatedCost)} ETH`);
+    console.log(`💰 Estimated cost: ${hre.ethers.utils.formatEther(estimatedCost)} ETH`);
     
     // Deploy the contract
     console.log("📤 Deploying contract...");
@@ -34,9 +34,9 @@ async function main() {
     
     // Wait for deployment
     console.log("⏳ Waiting for deployment confirmation...");
-    await diceGameEscrow.waitForDeployment();
+    await diceGameEscrow.deployed();
     
-    const contractAddress = await diceGameEscrow.getAddress();
+    const contractAddress = diceGameEscrow.address;
     console.log(`✅ DiceGameEscrow deployed to: ${contractAddress}`);
     
     // Verify deployment

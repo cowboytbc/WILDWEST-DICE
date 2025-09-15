@@ -1473,6 +1473,14 @@ Better luck next time! 🎲
     }
 }
 
-// Create and start the bot
-const bot = new DiceBotGame();
-bot.start();
+// Create and start the bot with error handling
+try {
+    console.log('🎲 Initializing WildWest Dice Bot...');
+    const bot = new DiceBotGame();
+    console.log('🎲 Bot initialized successfully, starting...');
+    bot.start();
+} catch (error) {
+    console.error('❌ FATAL ERROR during bot initialization:', error);
+    console.error('Stack trace:', error.stack);
+    process.exit(1);
+}

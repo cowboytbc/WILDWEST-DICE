@@ -4,7 +4,7 @@
   "description": "Telegram dice gambling bot using WildWest tokens on Base blockchain with lottery system",
   "main": "src/bot.js",
   "scripts": {
-    "start": "node src/bot.js",
+    "start": "node startup.js",
     "dev": "nodemon src/bot.js",
     "deploy": "node scripts/deploy.js",
     "compile": "npx hardhat compile",

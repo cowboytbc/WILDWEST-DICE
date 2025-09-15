@@ -23,6 +23,7 @@ class DiceBotGame {
         const commands = [
             { command: 'start', description: '🚀 Start the WildWest Dice Bot' },
             { command: 'howtoplay', description: '📖 Detailed game instructions' },
+            { command: 'contract', description: '📋 Get $WILDW contract address' },
             { command: 'connect', description: '🔗 Connect your payout wallet' },
             { command: 'create', description: '🎲 Create a new dice game' },
             { command: 'join', description: '🃏 Join an existing game' },
@@ -77,7 +78,7 @@ class DiceBotGame {
 Welcome to the ultimate dice gambling experience on Base!
 
 🪙 **ONLY ACCEPTS $WILDW TOKENS** 🪙
-Contract: 0x8129609E5303910464FCe3022a809fA44455Fe9A
+Contract: `0x8129609E5303910464FCe3022a809fA44455Fe9A`
 
 **🎯 HOW THE GAME WORKS:**
 
@@ -107,6 +108,7 @@ Contract: 0x8129609E5303910464FCe3022a809fA44455Fe9A
 • Lottery pool grows from all game fees
 
 **Commands:**
+/contract - Get $WILDW contract address for easy copying
 /connect - Instructions to set payout wallet
 /wallet <address> - Set your payout address (one-time setup)
 /payout - View your current payout address
@@ -854,7 +856,7 @@ Click the button below to continue in a private message:
 
 **🪙 TOKEN REQUIREMENTS:**
 • Only accepts $WILDW tokens on Base network
-• Contract: 0x8129609E5303910464FCe3022a809fA44455Fe9A
+• Contract: `0x8129609E5303910464FCe3022a809fA44455Fe9A`
 • Get $WILDW from DEX or swap platforms
 
 **⚙️ INITIAL SETUP:**
@@ -911,6 +913,27 @@ Ready to gamble? Start with \`/create <amount>\`! 🎲
             `;
             
             ctx.reply(detailedInstructions, { parse_mode: 'Markdown' });
+        });
+        
+        this.bot.command('contract', (ctx) => {
+            const contractInfo = `
+🪙 **$WILDW Token Contract Address** 🪙
+
+**Contract Address:**
+\`0x8129609E5303910464FCe3022a809fA44455Fe9A\`
+
+**Network:** Base
+**Symbol:** $WILDW
+**Name:** WildWest
+
+📋 **Easy Copy:** Tap the address above to copy it!
+🔗 **Add to Wallet:** Use this address to add $WILDW to your wallet
+💰 **Buy $WILDW:** Use DEX platforms to swap for $WILDW tokens
+
+Ready to play? Get some $WILDW and use \`/create <amount>\`! 🎲
+            `;
+            
+            ctx.reply(contractInfo, { parse_mode: 'Markdown' });
         });
         
         this.bot.command('help', (ctx) => {

@@ -1,0 +1,43 @@
+{
+  "name": "wildwest-dice-bot",
+  "version": "1.0.0",
+  "description": "Telegram dice gambling bot using WildWest tokens on Base blockchain with lottery system",
+  "main": "src/bot.js",
+  "scripts": {
+    "start": "node src/bot.js",
+    "dev": "nodemon src/bot.js",
+    "deploy": "node scripts/deploy.js",
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "build": "npx hardhat compile",
+    "postinstall": "npm run compile"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cowboytbc/WILDWEST-DICE.git"
+  },
+  "dependencies": {
+    "telegraf": "^4.15.6",
+    "ethers": "^6.7.1",
+    "dotenv": "^16.3.1",
+    "node-cron": "^3.0.2",
+    "@openzeppelin/contracts": "^5.0.0",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "hardhat": "^2.17.2",
+    "@nomicfoundation/hardhat-toolbox": "^3.0.2",
+    "nodemon": "^3.0.1"
+  },
+  "keywords": ["telegram", "bot", "dice", "gambling", "base", "blockchain", "wildwest", "ethereum", "lottery"],
+  "author": "cowboytbc",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cowboytbc/WILDWEST-DICE/issues"
+  },
+  "homepage": "https://github.com/cowboytbc/WILDWEST-DICE#readme"
+}

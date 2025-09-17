@@ -1410,13 +1410,39 @@ Better luck next time! 🎲
         }, 300000); // 5 minutes to roll lottery
     }
     
-    start() {
+    async startWithRetry(maxRetries = 10, baseDelay = 5000) {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                await this.bot.launch();
+                console.log('✅ WildWest Dice Bot is running!');
+                return; // Success! Exit the retry loop
+            } catch (error) {
+                if (error.response && error.response.error_code === 409) {
+                    const delay = baseDelay * Math.pow(2, attempt - 1); // Exponential backoff
+                    console.log(`🔄 Attempt ${attempt}/${maxRetries}: Bot conflict detected. Waiting ${delay/1000}s before retry...`);
+                    
+                    if (attempt < maxRetries) {
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    } else {
+                        console.error('❌ Max retries reached. Bot could not start due to persistent conflicts.');
+                        throw error;
+                    }
+                } else {
+                    // Non-409 error, don't retry
+                    console.error('❌ Bot startup failed with non-conflict error:', error.message);
+                    throw error;
+                }
+            }
+        }
+    }
+    
+    async start() {
         console.log('🚀 Starting WildWest Dice Bot...');
         console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
         console.log(`🤖 Bot: @${process.env.TELEGRAM_BOT_USERNAME || 'unknown'}`);
         
-        this.bot.launch();
-        console.log('✅ WildWest Dice Bot is running!');
+        await this.startWithRetry();
         
         // Enable graceful stop
         process.once('SIGINT', () => {
@@ -1467,4 +1493,7 @@ Better luck next time! 🎲
 
 // Create and start the bot
 const bot = new DiceBotGame();
-bot.start();
+bot.start().catch(error => {
+    console.error('❌ Failed to start bot:', error);
+    process.exit(1);
+});

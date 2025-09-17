@@ -56,6 +56,10 @@ class BlockchainService {
         }
     }
     
+    getContractAddress() {
+        return this.contractAddress;
+    }
+    
     async validatePlayerCanDeposit(playerAddress, amount) {
         try {
             const amountWei = ethers.parseEther(amount.toString());

@@ -760,7 +760,7 @@ Click the button below to continue in a private message:
             
             let message = '🎮 **Available Games:**\n\n';
             availableGames.forEach(([gameId, game]) => {
-                message += `🆔 ID: \`${gameId}\`\n💰 Buy-in: ${game.buyIn} WWT\n👤 Creator: ${game.challengerName}\n\n`;
+                message += `🆔 ID: ${gameId}\n💰 Buy-in: ${game.buyIn} WWT\n👤 Creator: ${game.challengerName}\n\n`;
             });
             message += 'Join a game with: /join <game_id>';
             
@@ -779,7 +779,7 @@ Click the button below to continue in a private message:
             let message = '🎯 **Your Games:**\n\n';
             userGames.forEach(([gameId, game]) => {
                 const isChallenger = game.challenger === userId;
-                message += `🆔 ID: \`${gameId}\`\n💰 Buy-in: ${game.buyIn} WWT\n🎯 Status: ${game.status}\n`;
+                message += `🆔 ID: ${gameId}\n💰 Buy-in: ${game.buyIn} WWT\n🎯 Status: ${game.status}\n`;
                 message += `👤 Role: ${isChallenger ? 'Challenger' : 'Opponent'}\n\n`;
             });
             

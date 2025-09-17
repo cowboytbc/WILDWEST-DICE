@@ -1,4 +1,4 @@
-// WildWest Dice Bot - Fixed for Render deployment v1.1
+// WildWest Dice Bot - Fixed for Render deployment v1.2 - Force Redeploy
 const { Telegraf, Markup } = require('telegraf');
 const { ethers } = require('ethers');
 const BlockchainService = require('./blockchain');

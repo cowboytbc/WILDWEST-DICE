@@ -3,10 +3,6 @@ services:
     name: wildwest-dice-bot
     env: node
     runtime: node
+    rootDir: .
     buildCommand: npm install && npm install sqlite3 --build-from-source
     startCommand: node src/bot.js
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: 8080

@@ -72,69 +72,7 @@ class DiceBotGame {
                 }
             }
             
-            const welcomeMessage = `
-🎲 **WildWest Dice Bot** 🎲
-
-Welcome to the ultimate dice gambling experience on Base!
-
-🪙 **ONLY ACCEPTS $WILDW TOKENS** 🪙
-Contract: 0x8129609E5303910464FCe3022a809fA44455Fe9A
-
-**🎯 HOW THE GAME WORKS:**
-
-**Game Setup:**
-• Player 1 creates a game with a buy-in amount (e.g., 100 $WILDW)
-• Player 2 joins by matching the same buy-in amount
-• Both players deposit $WILDW tokens into the smart contract escrow
-
-**Game Play (Best of 3 Rounds):**
-• Each round: Both players roll 2 dice simultaneously
-• Your dice total = Dice 1 + Dice 2 (range: 2-12)
-• Higher total wins the round
-• First to win 2 rounds wins the entire pot!
-
-**🐍 SNAKE EYES RULE:**
-• Rolling ⚀ ⚀ (both dice showing 1) = INSTANT LOSS
-• Exception: If both players roll snake eyes in same round, game continues with 2 points each
-
-**💰 PAYOUTS:**
-• Winner takes 99% of the total pot (198 $WILDW from 200 $WILDW pot)
-• 1% house fee goes to lottery jackpot pool
-• Automatic payout to your registered wallet address
-
-**🎰 LOTTERY BONUS:**
-• Roll ⚅ ⚅ (double 6s) to trigger lottery chance
-• If your dice total = 7 or 11, WIN THE ENTIRE LOTTERY POOL!
-• Lottery pool grows from all game fees
-
-**Commands:**
-/contract - Get $WILDW contract address for easy copying
-/connect - Instructions to set payout wallet
-/wallet <address> - Set your payout address (one-time setup)
-/payout - View your current payout address
-/create <amount> - Create new game (send $WILDW tokens)
-/confirm <gameId> - Confirm game after sending $WILDW tokens
-/join <gameId> - Join an existing game 
-/confirm_join <gameId> - Confirm join after sending $WILDW tokens
-/games - View available games
-/mygames - View your active games
-/stats [username] - View player statistics
-/scoreboard - View top players leaderboard
-/jackpot - Check current lottery jackpot amount
-/lottery - View lottery details
-/howtoplay - Complete detailed game guide
-/help - Show this help message
-
-**🎰 Lottery System:**
-• 1% fee builds up jackpot pool
-• Roll double 6s (⚅ ⚅) to trigger lottery
-• Roll 7 or 11 total to win entire $WILDW pool!
-
-💡 **One-time setup:** Set your payout address once and you're ready to play! 💰
-💰 **Get $WILDW tokens on Base network to start gambling!**
-
-🔒 **Privacy:** Payout addresses and funding are handled in private messages for security.
-            `;
+            const welcomeMessage = "🎲 **WildWest Dice Bot** 🎲\n\nWelcome to the ultimate dice gambling experience on Base!\n\n🪙 **ONLY ACCEPTS $WILDW TOKENS** 🪙\nContract: 0x8129609E5303910464FCe3022a809fA44455Fe9A\n\n**🎯 HOW THE GAME WORKS:**\n\n**Game Setup:**\n• Player 1 creates a game with a buy-in amount (e.g., 100 $WILDW)\n• Player 2 joins by matching the same buy-in amount\n• Both players deposit $WILDW tokens into the smart contract escrow\n\n**Game Play (Best of 3 Rounds):**\n• Each round: Both players roll 2 dice simultaneously\n• Your dice total = Dice 1 + Dice 2 (range: 2-12)\n• Higher total wins the round\n• First to win 2 rounds wins the entire pot!\n\n**🐍 SNAKE EYES RULE:**\n• Rolling ⚀ ⚀ (both dice showing 1) = INSTANT LOSS\n• Exception: If both players roll snake eyes in same round, game continues with 2 points each\n\n**💰 PAYOUTS:**\n• Winner takes 99% of the total pot (198 $WILDW from 200 $WILDW pot)\n• 1% house fee goes to lottery jackpot pool\n• Automatic payout to your registered wallet address\n\n**🎰 LOTTERY BONUS:**\n• Roll ⚅ ⚅ (double 6s) to trigger lottery chance\n• If your dice total = 7 or 11, WIN THE ENTIRE LOTTERY POOL!\n• Lottery pool grows from all game fees\n\n**Commands:**\n/contract - Get $WILDW contract address for easy copying\n/connect - Instructions to set payout wallet\n/wallet <address> - Set your payout address (one-time setup)\n/payout - View your current payout address\n/create <amount> - Create new game (send $WILDW tokens)\n/confirm <gameId> - Confirm game after sending $WILDW tokens\n/join <gameId> - Join an existing game \n/confirm_join <gameId> - Confirm join after sending $WILDW tokens\n/games - View available games\n/mygames - View your active games\n/stats [username] - View player statistics\n/scoreboard - View top players leaderboard\n/jackpot - Check current lottery jackpot amount\n/lottery - View lottery details\n/howtoplay - Complete detailed game guide\n/help - Show this help message\n\n**🎰 Lottery System:**\n• 1% fee builds up jackpot pool\n• Roll double 6s (⚅ ⚅) to trigger lottery\n• Roll 7 or 11 total to win entire $WILDW pool!\n\n💡 **One-time setup:** Set your payout address once and you're ready to play! 💰\n💰 **Get $WILDW tokens on Base network to start gambling!**\n\n🔒 **Privacy:** Payout addresses and funding are handled in private messages for security.";
             
             ctx.reply(welcomeMessage);
         });

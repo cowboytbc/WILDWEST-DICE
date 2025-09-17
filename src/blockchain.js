@@ -96,7 +96,7 @@ class BlockchainService {
     async getPlayerDeposit(playerAddress) {
         try {
             const deposit = await this.contract.getPlayerDeposit(playerAddress);
-            return ethers.formatEther(deposit);
+            return ethers.utils.formatEther(deposit);
         } catch (error) {
             console.error('Get player deposit error:', error);
             throw error;
@@ -134,7 +134,7 @@ class BlockchainService {
                     won: true,
                     dice1: parsed.args.dice1,
                     dice2: parsed.args.dice2,
-                    winnings: ethers.formatEther(parsed.args.amount)
+                    winnings: ethers.utils.formatEther(parsed.args.amount)
                 };
             } else if (lotteryLossEvent) {
                 const parsed = this.contract.interface.parseLog(lotteryLossEvent);
@@ -159,9 +159,9 @@ class BlockchainService {
             return {
                 gamesWon: stats.gamesWon.toString(),
                 gamesLost: stats.gamesLost.toString(),
-                totalWinnings: ethers.formatEther(stats.totalWinnings),
+                totalWinnings: ethers.utils.formatEther(stats.totalWinnings),
                 lotteryWins: stats.lotteryWins.toString(),
-                lotteryWinnings: ethers.formatEther(stats.lotteryWinnings)
+                lotteryWinnings: ethers.utils.formatEther(stats.lotteryWinnings)
             };
         } catch (error) {
             console.error('Get player stats error:', error);
@@ -172,7 +172,7 @@ class BlockchainService {
     async getLotteryPool() {
         try {
             const pool = await this.contract.getLotteryPool();
-            return ethers.formatEther(pool);
+            return ethers.utils.formatEther(pool);
         } catch (error) {
             console.error('Get lottery pool error:', error);
             throw error;
@@ -241,7 +241,7 @@ class BlockchainService {
         try {
             // Get game details
             const gameData = await this.contract.getGame(gameId);
-            const buyInAmount = ethers.formatEther(gameData.buyIn);
+            const buyInAmount = ethers.utils.formatEther(gameData.buyIn);
             
             // Check if opponent has enough deposited tokens
             const playerDeposit = await this.getPlayerDeposit(opponentAddress);
@@ -283,8 +283,8 @@ class BlockchainService {
                 return {
                     txHash: receipt.hash,
                     winner: parsed.args.winner,
-                    payout: ethers.formatEther(parsed.args.payout),
-                    tax: ethers.formatEther(parsed.args.tax)
+                    payout: ethers.utils.formatEther(parsed.args.payout),
+                    tax: ethers.utils.formatEther(parsed.args.tax)
                 };
             }
             
@@ -317,7 +317,7 @@ class BlockchainService {
             return {
                 challenger: gameData.challenger,
                 opponent: gameData.opponent,
-                buyIn: ethers.formatEther(gameData.buyIn),
+                buyIn: ethers.utils.formatEther(gameData.buyIn),
                 state: gameData.state, // 0: WaitingForOpponent, 1: InProgress, 2: Completed, 3: Cancelled
                 winner: gameData.winner,
                 createdAt: new Date(Number(gameData.createdAt) * 1000)
@@ -351,7 +351,7 @@ class BlockchainService {
     async getTokenBalance(address) {
         try {
             const balance = await this.token.balanceOf(address);
-            return ethers.formatEther(balance);
+            return ethers.utils.formatEther(balance);
         } catch (error) {
             console.error('Get token balance error:', error);
             throw error;
@@ -361,7 +361,7 @@ class BlockchainService {
     async getTokenAllowance(ownerAddress, spenderAddress) {
         try {
             const allowance = await this.token.allowance(ownerAddress, spenderAddress);
-            return ethers.formatEther(allowance);
+            return ethers.utils.formatEther(allowance);
         } catch (error) {
             console.error('Get token allowance error:', error);
             throw error;
@@ -403,7 +403,7 @@ Or use this link: https://basescan.org/address/${this.contractAddress}#writeCont
             return {
                 gasLimit: gasEstimate,
                 gasPrice: gasPrice.gasPrice,
-                estimatedCost: ethers.formatEther(gasEstimate * gasPrice.gasPrice)
+                estimatedCost: ethers.utils.formatEther(gasEstimate * gasPrice.gasPrice)
             };
         } catch (error) {
             console.error('Gas estimation error:', error);
@@ -412,15 +412,25 @@ Or use this link: https://basescan.org/address/${this.contractAddress}#writeCont
     }
     
     formatTransactionUrl(txHash) {
-        const baseUrl = process.env.NETWORK === 'mainnet' ? 
+        // Check if using Base mainnet (production) or Sepolia testnet
+        const isMainnet = process.env.BASE_RPC_URL?.includes('mainnet.base.org') || 
+                         process.env.RPC_URL?.includes('mainnet.base.org') ||
+                         process.env.NODE_ENV === 'production';
+        
+        const baseUrl = isMainnet ? 
             'https://basescan.org/tx/' : 
             'https://sepolia.basescan.org/tx/';
         
         return baseUrl + txHash;
     }
-    
+
     formatAddressUrl(address) {
-        const baseUrl = process.env.NETWORK === 'mainnet' ? 
+        // Check if using Base mainnet (production) or Sepolia testnet
+        const isMainnet = process.env.BASE_RPC_URL?.includes('mainnet.base.org') || 
+                         process.env.RPC_URL?.includes('mainnet.base.org') ||
+                         process.env.NODE_ENV === 'production';
+        
+        const baseUrl = isMainnet ? 
             'https://basescan.org/address/' : 
             'https://sepolia.basescan.org/address/';
         

@@ -58,6 +58,29 @@ class DatabaseService {
                 lottery_rolled BOOLEAN DEFAULT FALSE
             )
         `);
+
+        // Active games table - stores ongoing games with full state
+        this.db.run(`
+            CREATE TABLE IF NOT EXISTS active_games (
+                game_id TEXT PRIMARY KEY,
+                challenger_telegram_id INTEGER,
+                challenger_name TEXT,
+                challenger_address TEXT,
+                opponent_telegram_id INTEGER,
+                opponent_name TEXT,
+                opponent_address TEXT,
+                buy_in REAL,
+                status TEXT,
+                rounds_data TEXT, -- JSON string of rounds array
+                current_round INTEGER DEFAULT 0,
+                challenger_score INTEGER DEFAULT 0,
+                opponent_score INTEGER DEFAULT 0,
+                created_at INTEGER, -- timestamp
+                expires_at INTEGER, -- timestamp
+                FOREIGN KEY(challenger_telegram_id) REFERENCES users(telegram_id),
+                FOREIGN KEY(opponent_telegram_id) REFERENCES users(telegram_id)
+            )
+        `);
         
         // Lottery rolls table - tracks all lottery attempts
         this.db.run(`
@@ -179,6 +202,142 @@ class DatabaseService {
                 }
             });
             stmt.finalize();
+        });
+    }
+
+    // Active Games Management
+    async saveActiveGame(gameData) {
+        return new Promise((resolve, reject) => {
+            const stmt = this.db.prepare(`
+                INSERT OR REPLACE INTO active_games 
+                (game_id, challenger_telegram_id, challenger_name, challenger_address, 
+                 opponent_telegram_id, opponent_name, opponent_address, buy_in, status, 
+                 rounds_data, current_round, challenger_score, opponent_score, created_at, expires_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `);
+            
+            const roundsJson = JSON.stringify(gameData.rounds || []);
+            const expiresAt = gameData.createdAt + (30 * 60 * 1000); // 30 minutes
+            
+            stmt.run([
+                gameData.id,
+                gameData.challenger,
+                gameData.challengerName || '',
+                gameData.challengerAddress,
+                gameData.opponent || null,
+                gameData.opponentName || null,
+                gameData.opponentAddress || null,
+                gameData.buyIn,
+                gameData.status,
+                roundsJson,
+                gameData.currentRound || 0,
+                gameData.challengerScore || 0,
+                gameData.opponentScore || 0,
+                gameData.createdAt,
+                expiresAt
+            ], function(err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve({ success: true, changes: this.changes });
+                }
+            });
+            stmt.finalize();
+        });
+    }
+
+    async getActiveGame(gameId) {
+        return new Promise((resolve, reject) => {
+            this.db.get(
+                `SELECT * FROM active_games WHERE game_id = ?`,
+                [gameId],
+                (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else if (row) {
+                        // Convert database row back to game object
+                        const gameData = {
+                            id: row.game_id,
+                            challenger: row.challenger_telegram_id,
+                            challengerName: row.challenger_name,
+                            challengerAddress: row.challenger_address,
+                            opponent: row.opponent_telegram_id,
+                            opponentName: row.opponent_name,
+                            opponentAddress: row.opponent_address,
+                            buyIn: row.buy_in,
+                            status: row.status,
+                            rounds: JSON.parse(row.rounds_data || '[]'),
+                            currentRound: row.current_round,
+                            challengerScore: row.challenger_score,
+                            opponentScore: row.opponent_score,
+                            createdAt: row.created_at
+                        };
+                        resolve(gameData);
+                    } else {
+                        resolve(null);
+                    }
+                }
+            );
+        });
+    }
+
+    async getAllActiveGames() {
+        return new Promise((resolve, reject) => {
+            this.db.all(
+                `SELECT * FROM active_games WHERE expires_at > ?`,
+                [Date.now()],
+                (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        const games = new Map();
+                        rows.forEach(row => {
+                            const gameData = {
+                                id: row.game_id,
+                                challenger: row.challenger_telegram_id,
+                                challengerName: row.challenger_name,
+                                challengerAddress: row.challenger_address,
+                                opponent: row.opponent_telegram_id,
+                                opponentName: row.opponent_name,
+                                opponentAddress: row.opponent_address,
+                                buyIn: row.buy_in,
+                                status: row.status,
+                                rounds: JSON.parse(row.rounds_data || '[]'),
+                                currentRound: row.current_round,
+                                challengerScore: row.challenger_score,
+                                opponentScore: row.opponent_score,
+                                createdAt: row.created_at
+                            };
+                            games.set(row.game_id, gameData);
+                        });
+                        resolve(games);
+                    }
+                }
+            );
+        });
+    }
+
+    async deleteActiveGame(gameId) {
+        return new Promise((resolve, reject) => {
+            this.db.run(`DELETE FROM active_games WHERE game_id = ?`, [gameId], function(err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve({ success: true, changes: this.changes });
+                }
+            });
+        });
+    }
+
+    async cleanExpiredActiveGames() {
+        return new Promise((resolve, reject) => {
+            this.db.run(`DELETE FROM active_games WHERE expires_at < ?`, [Date.now()], function(err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve({ success: true, deleted: this.changes });
+                }
+            });
         });
     }
     

@@ -19,6 +19,34 @@ class DiceBotGame {
         this.setupBotCommands(); // Set up command menu for Telegram
     }
     
+    async restoreActiveGames() {
+        try {
+            console.log('🔄 Restoring active games from database...');
+            
+            // Clean up expired games first
+            await this.database.cleanExpiredActiveGames();
+            
+            // Load all active games
+            const games = await this.database.getAllActiveGames();
+            this.activeGames = games;
+            
+            console.log(`✅ Restored ${games.size} active games from database`);
+        } catch (error) {
+            console.error('❌ Error restoring active games:', error);
+        }
+    }
+    
+    async saveGameToDatabase(gameId) {
+        try {
+            const game = this.activeGames.get(gameId);
+            if (game) {
+                await this.database.saveActiveGame(game);
+            }
+        } catch (error) {
+            console.error(`❌ Error saving game ${gameId} to database:`, error);
+        }
+    }
+    
     async setupBotCommands() {
         // Set up command menu that appears when users type /
         const commands = [
@@ -307,8 +335,8 @@ Example: \`/wallet 0x742d35Cc6b392e82e721C4C8c2b1c93d0E3d0123\`
                 // Generate a temporary game ID for tracking
                 const gameId = Date.now().toString() + Math.random().toString(36).substr(2, 5);
                 
-                // Store game in local state as "pending"
-                this.activeGames.set(gameId, {
+                // Create game object
+                const gameData = {
                     id: gameId,
                     challenger: userId,
                     challengerAddress: walletAddress,
@@ -322,7 +350,11 @@ Example: \`/wallet 0x742d35Cc6b392e82e721C4C8c2b1c93d0E3d0123\`
                     challengerScore: 0,
                     opponentScore: 0,
                     createdAt: Date.now()
-                });
+                };
+
+                // Store game in both memory and database
+                this.activeGames.set(gameId, gameData);
+                await this.database.saveActiveGame(gameData);
                 
                 const message = `
 🎮 **Game Created!**
@@ -420,6 +452,9 @@ Click the button below to continue in a private message:
                 game.status = 'waiting';
                 game.blockchainGameId = gameResult.gameId;
                 game.blockchainTxHash = gameResult.txHash;
+                
+                // Save updated game to database
+                await this.saveGameToDatabase(gameId);
                 
                 const message = `
 ✅ **Game Confirmed!**
@@ -996,9 +1031,16 @@ Contract: 0x8129609E5303910464FCe3022a809fA44455Fe9A
         }
         
         try {
-            const game = this.activeGames.get(gameId);
+            let game = this.activeGames.get(gameId);
             if (!game) {
-                return ctx.reply('❌ Game not found. It may have expired or been cancelled.');
+                // Try to load from database
+                game = await this.database.getActiveGame(gameId);
+                if (game) {
+                    // Restore to memory
+                    this.activeGames.set(gameId, game);
+                } else {
+                    return ctx.reply('❌ Game not found. It may have expired or been cancelled.');
+                }
             }
             
             // Verify user is authorized for this game
@@ -1441,6 +1483,9 @@ Better luck next time! 🎲
         console.log('🚀 Starting WildWest Dice Bot...');
         console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
         console.log(`🤖 Bot: @${process.env.TELEGRAM_BOT_USERNAME || 'unknown'}`);
+        
+        // Restore active games from database before starting
+        await this.restoreActiveGames();
         
         await this.startWithRetry();
         

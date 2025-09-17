@@ -3,5 +3,11 @@ services:
     name: wildwest-dice-bot
     env: node
     runtime: node
-    buildCommand: npm ci && npm install sqlite3 --build-from-source
-    startCommand: node src/bot.js
+    buildCommand: |
+      npm ci
+      npm install sqlite3 --build-from-source
+      echo "Build complete - starting WildWest Dice Bot"
+    startCommand: node src/wildwest-bot.js
+    envVars:
+      - key: NODE_ENV
+        value: production

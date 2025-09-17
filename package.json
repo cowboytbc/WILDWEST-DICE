@@ -2,9 +2,9 @@
   "name": "wildwest-dice-bot",
   "version": "1.0.0",
   "description": "Telegram dice gambling bot using WildWest tokens on Base blockchain with lottery system",
-  "main": "src/bot.js",
+  "main": "src/wildwest-bot.js",
   "scripts": {
-    "start": "node src/bot.js",
+    "start": "node src/wildwest-bot.js",
     "dev": "nodemon src/bot.js",
     "deploy": "node scripts/deploy.js",
     "compile": "npx hardhat compile",

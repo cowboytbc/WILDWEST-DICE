@@ -46,6 +46,49 @@ class DiceBotGame {
         }
     }
     
+    async handlePayoutView(ctx) {
+        const userId = ctx.from.id;
+        try {
+            const walletAddress = await this.database.getUserWallet(userId);
+            
+            if (!walletAddress) {
+                const message = `
+🔒 **No Payout Address Set**
+
+You haven't set up your payout wallet yet. 
+
+Use: \`/wallet YOUR_ADDRESS\`
+
+**Example:** \`/wallet 0x742d35Cc6b392e82e721C4C8c2b1c93d0E3d0123\`
+
+⚠️ **Required:** You must set a wallet address before creating or joining games.
+                `;
+                return ctx.reply(message, { parse_mode: 'Markdown' });
+            }
+            
+            // Truncate address for display
+            const displayAddress = walletAddress.length > 10 
+                ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
+                : walletAddress;
+            
+            const message = `
+💳 **Your Payout Address**
+
+**Address:** \`${walletAddress}\`
+**Display:** ${displayAddress}
+
+💰 All your winnings will be automatically sent to this address after each game victory.
+
+🔄 **To change:** Use \`/wallet NEW_ADDRESS\`
+            `;
+            
+            ctx.reply(message, { parse_mode: 'Markdown' });
+        } catch (error) {
+            console.error('Error getting user wallet:', error);
+            ctx.reply(`❌ Error retrieving payout address: ${error.message}`);
+        }
+    }
+    
     
     setupCommands() {
         this.bot.command('start', async (ctx) => {
@@ -55,13 +98,32 @@ class DiceBotGame {
             // Handle deep link parameters for private operations
             if (startParam) {
                 if (startParam === 'connect') {
-                    return ctx.command('connect')(ctx);
+                    const message = `
+🔒 **Set Your Payout Wallet (Private & Secure)**
+
+Please provide your Base wallet address where winnings should be sent:
+
+\`/wallet YOUR_WALLET_ADDRESS\`
+
+**Example:** \`/wallet 0x742d35Cc6b392e82e721C4C8c2b1c93d0E3d0123\`
+
+⚠️ **IMPORTANT:**
+• Only provide addresses you control
+• Use Base network addresses only
+• Double-check the address before submitting
+• This is where your winnings will be sent automatically
+
+🛡️ **Security:** Your wallet address is stored securely and only used for payouts.
+                    `;
+                    return ctx.reply(message, { parse_mode: 'Markdown' });
                 }
                 if (startParam === 'wallet') {
                     return ctx.reply('🔒 **Set Your Payout Wallet (Private & Secure)**\n\nPlease provide your Base wallet address:\n\n`/wallet YOUR_WALLET_ADDRESS`\n\nExample: `/wallet 0x742d35Cc6b392e82e721C4C8c2b1c93d0E3d0123`', { parse_mode: 'Markdown' });
                 }
                 if (startParam === 'payout') {
-                    return ctx.command('payout')(ctx);
+                    // Handle payout view directly
+                    this.handlePayoutView(ctx);
+                    return;
                 }
                 if (startParam.startsWith('fund_')) {
                     const gameId = startParam.substring(5);

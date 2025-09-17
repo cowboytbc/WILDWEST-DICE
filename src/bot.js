@@ -1438,11 +1438,23 @@ Better luck next time! 🎲
                 // Don't crash on rate limits, just log and continue
                 return;
             }
+            if (err.response && err.response.error_code === 409) {
+                console.log('🔄 Conflict with another bot instance, waiting for it to timeout...');
+                // Don't crash on 409 conflicts, just log and continue
+                return;
+            }
             console.error('Full error:', err);
         });
 
         process.on('unhandledRejection', (reason, promise) => {
             console.error('⚠️ Unhandled Rejection at:', promise, 'reason:', reason);
+            
+            // Handle specific Telegram 409 errors gracefully
+            if (reason && reason.response && reason.response.error_code === 409) {
+                console.log('🔄 Telegram 409 conflict detected. Waiting for previous instance to timeout...');
+                return; // Don't crash, let it retry
+            }
+            
             // Don't crash on unhandled rejections
         });
 

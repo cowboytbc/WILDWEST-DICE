@@ -102,3 +102,12 @@ Thumbs.db
 *.db
 *.sqlite
 *.sqlite3
+
+# Backup and debugging files
+*.backup
+*.backup*
+*-backup*
+check-*.js
+fix-*.js
+debug-*.js
+temp-*.js

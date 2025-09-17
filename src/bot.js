@@ -940,8 +940,13 @@ Contract: 0x8129609E5303910464FCe3022a809fA44455Fe9A
             ctx.reply(welcomeMessage);
         });
 
-        // Add a general command error handler for invalid commands
+        // Add a general command error handler for invalid commands (PRIVATE MESSAGES ONLY)
         this.bot.on('text', (ctx) => {
+            // Only respond to private messages to avoid group spam and rate limiting
+            if (ctx.chat.type !== 'private') {
+                return; // Ignore group/channel messages
+            }
+            
             const text = ctx.message.text;
             
             // Only handle messages that start with / but aren't valid commands
@@ -1422,6 +1427,27 @@ Better luck next time! 🎲
             console.log('🛑 Shutting down bot (SIGTERM)...');
             this.database.close();
             this.bot.stop('SIGTERM');
+        });
+
+        // Add error handlers to prevent crashes
+        this.bot.catch((err, ctx) => {
+            console.error('⚠️ Bot error:', err.message);
+            if (err.response && err.response.error_code === 429) {
+                console.log('🔄 Rate limited, waiting...');
+                // Don't crash on rate limits, just log and continue
+                return;
+            }
+            console.error('Full error:', err);
+        });
+
+        process.on('unhandledRejection', (reason, promise) => {
+            console.error('⚠️ Unhandled Rejection at:', promise, 'reason:', reason);
+            // Don't crash on unhandled rejections
+        });
+
+        process.on('uncaughtException', (error) => {
+            console.error('⚠️ Uncaught Exception:', error);
+            // Log but don't crash
         });
     }
 }

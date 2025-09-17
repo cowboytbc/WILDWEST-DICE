@@ -2,7 +2,8 @@ services:
   - type: background-worker
     name: wildwest-dice-bot
     env: node
-    buildCommand: chmod +x build.sh && ./build.sh
+    runtime: node
+    buildCommand: npm install && npm install sqlite3 --build-from-source
     startCommand: node src/bot.js
     envVars:
       - key: NODE_ENV

@@ -50,29 +50,9 @@ class BlockchainService {
         this.contractAddress = process.env.CONTRACT_ADDRESS;
         this.tokenAddress = process.env.WILDWEST_TOKEN_ADDRESS;
         
-        // Validate required environment variables
-        if (!this.contractAddress) {
-            throw new Error('CONTRACT_ADDRESS environment variable is required');
-        }
-        if (!this.tokenAddress) {
-            throw new Error('WILDWEST_TOKEN_ADDRESS environment variable is required');
-        }
-        if (!process.env.PRIVATE_KEY) {
-            throw new Error('PRIVATE_KEY environment variable is required');
-        }
-        if (!process.env.BASE_RPC_URL && !process.env.RPC_URL) {
-            throw new Error('BASE_RPC_URL or RPC_URL environment variable is required');
-        }
-        
-        try {
+        if (this.contractAddress && this.tokenAddress) {
             this.contract = new ethers.Contract(this.contractAddress, this.contractABI, this.wallet);
             this.token = new ethers.Contract(this.tokenAddress, this.tokenABI, this.provider);
-            console.log('✅ Blockchain service initialized successfully');
-            console.log(`📋 Contract: ${this.contractAddress}`);
-            console.log(`🪙 Token: ${this.tokenAddress}`);
-        } catch (error) {
-            console.error('❌ Failed to initialize blockchain contracts:', error);
-            throw error;
         }
     }
     

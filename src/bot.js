@@ -200,7 +200,7 @@ Example: \`/wallet 0x742d35Cc6b392e82e721C4C8c2b1c93d0E3d0123\`
             
             const walletAddress = args[1];
             
-            if (!ethers.isAddress(walletAddress)) {
+            if (!ethers.utils.isAddress(walletAddress)) {
                 return ctx.reply('❌ Invalid wallet address format. Please check and try again.');
             }
             
